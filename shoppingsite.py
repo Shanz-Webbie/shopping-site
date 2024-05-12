@@ -63,14 +63,17 @@ def add_to_cart(melon_id):
     When a melon is added to the cart, redirect browser to the shopping cart
     page and display a confirmation message: 'Melon successfully added to
     cart'."""
-    session['cart'] = {} 
-    if melon_id in session['cart']:
-            session['cart'][melon_id] = session["cart"].get(melon_id, 0)+1
-            flash(f"{session['cart'][melon_id]} {melon_id} in cart")
-            session.modified = True
+    # session['cart'] = {} 
+    if session['cart'].get(melon_id) ==  None:
+        session['cart'][melon_id] = 1
+        session.modified = True
             # print(f"{session['cart'][melon_id]} {melon_id} in cart")
     else:
-        session['cart'][melon_id] = session["cart"].get(melon_id, 0)+1
+        session['cart'][melon_id] = session['cart'].get(melon_id) + 1
+        flash(f"{session['cart'][melon_id]} {melon_id} in cart")
+        session.modified = True
+
+
     # TODO: Finish shopping cart functionality
 
     # The logic here should be something like:
@@ -82,12 +85,23 @@ def add_to_cart(melon_id):
     # - flash a success message
     # - redirect the user to the cart page
 
-    return render_template('cart.html', cart=session['cart'], melon_id = melon_id)
+    return redirect("/cart")
 
 
 @app.route("/cart")
 def show_shopping_cart():
     """Display content of shopping cart."""
+    cart_list = []
+    total = 0
+
+    for melon_id in session['cart']:
+        melon = melons.get_by_id(melon_id)
+        melon.qty = session['cart'][melon_id]
+        melon.total = melon.price * melon.qty
+        cart_list.append(melon)
+        total += melon.total
+
+        
 
     # TODO: Display the contents of the shopping cart.
 
@@ -107,7 +121,7 @@ def show_shopping_cart():
     # Make sure your function can also handle the case wherein no cart has
     # been added to the session
 
-    return render_template("cart.html")
+    return render_template("cart.html", cart=cart_list, total = total)
 
 
 @app.route("/login", methods=["GET"])
